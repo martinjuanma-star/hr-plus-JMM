@@ -1,107 +1,69 @@
 export const config = { runtime: "edge" };
 
+const FEED_PROXY = "https://api.rss2json.com/v1/api.json?rss_url=";
+
 const FEEDS = {
-  "beneficios": [
-    "https://rss.shrm.org/",
-    "https://feeds.feedburner.com/harvardbusiness"
-  ],
-  "marca-empleadora": [
-    "https://employerbrandinternational.com/feed/",
-    "https://rss.shrm.org/"
-  ],
-  "people-experience": [
-    "https://feeds.feedburner.com/harvardbusiness",
-    "https://rss.shrm.org/"
-  ],
-  "compensaciones": [
-    "https://rss.shrm.org/",
-    "https://feeds.feedburner.com/harvardbusiness"
-  ],
-  "payroll": [
-    "https://rss.shrm.org/",
-    "https://feeds.feedburner.com/harvardbusiness"
-  ],
-  "desarrollo": [
-    "https://feeds.feedburner.com/harvardbusiness",
-    "https://sloanreview.mit.edu/feed/"
-  ],
-  "cultura": [
-    "https://www.gallup.com/rss/",
-    "https://feeds.feedburner.com/harvardbusiness"
-  ],
-  "talent": [
-    "https://rss.shrm.org/",
-    "https://feeds.feedburner.com/harvardbusiness"
-  ],
-  "indicadores": [
-    "https://feeds.feedburner.com/harvardbusiness",
-    "https://sloanreview.mit.edu/feed/"
-  ],
-  "hr-tech": [
-    "https://feeds.feedburner.com/harvardbusiness",
-    "https://joshbersin.com/feed/"
-  ],
-  "change-management": [
-    "https://feeds.feedburner.com/harvardbusiness",
-    "https://sloanreview.mit.edu/feed/"
-  ],
-  "prompts-hr": [
-    "https://www.aihr.com/blog/feed/",
-    "https://rss.shrm.org/"
-  ]
+  "beneficios":        ["https://rss.shrm.org/","https://feeds.feedburner.com/harvardbusiness"],
+  "marca-empleadora":  ["https://employerbrandinternational.com/feed/","https://rss.shrm.org/"],
+  "people-experience": ["https://feeds.feedburner.com/harvardbusiness","https://rss.shrm.org/"],
+  "compensaciones":    ["https://rss.shrm.org/","https://feeds.feedburner.com/harvardbusiness"],
+  "payroll":           ["https://rss.shrm.org/","https://feeds.feedburner.com/harvardbusiness"],
+  "desarrollo":        ["https://feeds.feedburner.com/harvardbusiness","https://sloanreview.mit.edu/feed/"],
+  "cultura":           ["https://www.gallup.com/rss/en_us/poll.aspx","https://feeds.feedburner.com/harvardbusiness"],
+  "talent":            ["https://rss.shrm.org/","https://feeds.feedburner.com/harvardbusiness"],
+  "indicadores":       ["https://feeds.feedburner.com/harvardbusiness","https://sloanreview.mit.edu/feed/"],
+  "hr-tech":           ["https://feeds.feedburner.com/harvardbusiness","https://joshbersin.com/feed/"],
+  "change-management": ["https://feeds.feedburner.com/harvardbusiness","https://sloanreview.mit.edu/feed/"],
+  "prompts-hr":        ["https://www.aihr.com/blog/feed/","https://rss.shrm.org/"]
 };
 
 const KEYWORDS = {
-  "beneficios": ["benefit","benefits","wellbeing","wellness","perks","compensation package","employee benefits"],
-  "marca-empleadora": ["employer brand","employer branding","EVP","employee value proposition","talent attraction","company culture"],
+  "beneficios":        ["benefit","benefits","wellbeing","wellness","perks","employee benefits","total rewards"],
+  "marca-empleadora":  ["employer brand","employer branding","EVP","employee value proposition","talent attraction"],
   "people-experience": ["employee experience","people experience","onboarding","offboarding","engagement","workplace"],
-  "compensaciones": ["compensation","salary","pay equity","pay transparency","total rewards","remuneration"],
-  "payroll": ["payroll","salary","wages","pay","compensation","nómina","liquidación"],
-  "desarrollo": ["learning","development","training","upskilling","reskilling","career","leadership development"],
-  "cultura": ["culture","organizational culture","diversity","inclusion","DEI","psychological safety","values"],
-  "talent": ["talent","recruitment","hiring","acquisition","candidate","reclutamiento","selection"],
-  "indicadores": ["analytics","metrics","KPI","dashboard","data","people analytics","workforce data"],
-  "hr-tech": ["HR technology","HRIS","AI","artificial intelligence","automation","HCM","HR tech"],
-  "change-management": ["change management","transformation","organizational change","change","restructuring"],
-  "prompts-hr": ["AI","ChatGPT","Claude","prompt","generative AI","HR automation","artificial intelligence"]
+  "compensaciones":    ["compensation","salary","pay equity","pay transparency","total rewards","remuneration"],
+  "payroll":           ["payroll","wages","pay","salary","compensation"],
+  "desarrollo":        ["learning","development","training","upskilling","reskilling","career","leadership"],
+  "cultura":           ["culture","organizational culture","diversity","inclusion","DEI","psychological safety"],
+  "talent":            ["talent","recruitment","hiring","acquisition","candidate","selection","recruiting"],
+  "indicadores":       ["analytics","metrics","KPI","dashboard","data","people analytics","workforce"],
+  "hr-tech":           ["HR technology","HRIS","AI","artificial intelligence","automation","HCM","HR tech"],
+  "change-management": ["change management","transformation","organizational change","restructuring","change"],
+  "prompts-hr":        ["AI","ChatGPT","prompt","generative AI","HR automation","artificial intelligence"]
 };
 
-function parseRSS(xml) {
-  const items = [];
-  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
-  let match;
-  while ((match = itemRegex.exec(xml)) !== null) {
-    const itemXml = match[1];
-    const getTag = (tag) => {
-      const m = itemXml.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`));
-      return m ? (m[1] || m[2] || "").trim() : "";
-    };
-    const title = getTag("title");
-    const link = getTag("link") || itemXml.match(/<link>([^<]+)<\/link>/)?.[1] || "";
-    const description = getTag("description").replace(/<[^>]+>/g, "").slice(0, 400);
-    const pubDate = getTag("pubDate");
-    const source = getTag("source") || "";
-    if (title && link) {
-      items.push({ title, link, description, pubDate, source });
-    }
+const SOURCE_NAMES = {
+  "rss.shrm.org":                  { name:"SHRM",                         url:"https://www.shrm.org" },
+  "feedburner.com/harvardbusiness":{ name:"Harvard Business Review",      url:"https://hbr.org" },
+  "gallup.com":                    { name:"Gallup Workplace",             url:"https://www.gallup.com/workplace" },
+  "sloanreview.mit.edu":           { name:"MIT Sloan Management Review",  url:"https://sloanreview.mit.edu" },
+  "joshbersin.com":                { name:"Josh Bersin",                  url:"https://joshbersin.com" },
+  "aihr.com":                      { name:"AIHR",                         url:"https://www.aihr.com" },
+  "employerbrandinternational.com":{ name:"Employer Brand International", url:"https://employerbrandinternational.com" },
+};
+
+function getSource(feedUrl) {
+  for (const [key, val] of Object.entries(SOURCE_NAMES)) {
+    if (feedUrl.includes(key)) return val;
   }
-  return items;
+  return { name:"HR News", url:"#" };
 }
 
 function scoreItem(item, keywords) {
   const text = `${item.title} ${item.description}`.toLowerCase();
-  return keywords.reduce((score, kw) => score + (text.includes(kw.toLowerCase()) ? 2 : 0), 0);
+  return keywords.reduce((s, kw) => s + (text.includes(kw.toLowerCase()) ? 2 : 0), 0);
 }
 
-function getFeedSource(url) {
-  if (url.includes("shrm")) return { name: "SHRM", url: "https://www.shrm.org" };
-  if (url.includes("harvard") || url.includes("hbr")) return { name: "Harvard Business Review", url: "https://hbr.org" };
-  if (url.includes("gallup")) return { name: "Gallup Workplace", url: "https://www.gallup.com/workplace" };
-  if (url.includes("sloan") || url.includes("mit")) return { name: "MIT Sloan Management Review", url: "https://sloanreview.mit.edu" };
-  if (url.includes("bersin")) return { name: "Josh Bersin", url: "https://joshbersin.com" };
-  if (url.includes("aihr")) return { name: "AIHR", url: "https://www.aihr.com" };
-  if (url.includes("employerbrand")) return { name: "Employer Brand International", url: "https://employerbrandinternational.com" };
-  return { name: "HR News", url: "#" };
+function cleanHtml(str) {
+  return (str || "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g," ")
+    .replace(/&amp;/g,"&")
+    .replace(/&lt;/g,"<")
+    .replace(/&gt;/g,">")
+    .replace(/&quot;/g,'"')
+    .trim()
+    .slice(0, 500);
 }
 
 export default async function handler(req) {
@@ -122,15 +84,21 @@ export default async function handler(req) {
     await Promise.allSettled(
       feeds.map(async (feedUrl) => {
         try {
-          const res = await fetch(feedUrl, {
-            headers: { "User-Agent": "Mozilla/5.0 (compatible; HRPlus/1.0)" }
-          });
+          const proxyUrl = `${FEED_PROXY}${encodeURIComponent(feedUrl)}&count=10`;
+          const res = await fetch(proxyUrl);
           if (!res.ok) return;
-          const xml = await res.text();
-          const items = parseRSS(xml);
-          const src = getFeedSource(feedUrl);
-          items.forEach(item => {
-            allItems.push({ ...item, feedSource: src.name, feedUrl: src.url });
+          const data = await res.json();
+          if (data.status !== "ok" || !data.items) return;
+          const src = getSource(feedUrl);
+          data.items.forEach(item => {
+            allItems.push({
+              title: item.title || "",
+              link: item.link || item.guid || "#",
+              description: cleanHtml(item.description || item.content || ""),
+              pubDate: item.pubDate || "",
+              feedSource: src.name,
+              feedUrl: src.url,
+            });
           });
         } catch (e) {}
       })
@@ -138,9 +106,15 @@ export default async function handler(req) {
 
     const scored = allItems
       .map(item => ({ ...item, score: scoreItem(item, keywords) }))
-      .filter(item => item.score > 0 || allItems.length < 5)
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
+
+    if (scored.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, news: [], error: "No articles found" }),
+        { headers, status: 404 }
+      );
+    }
 
     const news = scored.map((item, i) => ({
       id: `live-${category}-${i}`,
@@ -150,13 +124,18 @@ export default async function handler(req) {
       source: item.feedSource,
       url: item.link,
       sourceUrl: item.feedUrl,
-      date: item.pubDate ? new Date(item.pubDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      date: item.pubDate
+        ? new Date(item.pubDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
       isLive: true
     }));
 
     return new Response(JSON.stringify({ success: true, news, category }), { headers });
 
   } catch (err) {
-    return new Response(JSON.stringify({ success: false, error: err.message, news: [] }), { headers, status: 500 });
+    return new Response(
+      JSON.stringify({ success: false, error: err.message, news: [] }),
+      { headers, status: 500 }
+    );
   }
 }
