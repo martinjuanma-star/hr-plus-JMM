@@ -1,4 +1,4 @@
- export const config = { runtime: "edge" };
+export const config = { runtime: "edge" };
 
 const CATEGORY_PROMPTS = {
   "beneficios": "beneficios laborales, bienestar de empleados, paquetes de compensación total, salud mental en el trabajo, beneficios flexibles, work-life balance",
@@ -79,7 +79,7 @@ Formato exacto requerido:
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-3-haiku-20240307",
         max_tokens: 2000,
         messages: [{ role: "user", content: prompt }]
       })
