@@ -1,144 +1,159 @@
-const CATEGORY_PROMPTS = {
-  "beneficios": "beneficios laborales, bienestar de empleados, paquetes de compensación total, salud mental en el trabajo, beneficios flexibles, work-life balance",
-  "marca-empleadora": "employer branding, marca empleadora, propuesta de valor al empleado EVP, reputación como empleador, atracción de talento",
-  "people-experience": "employee experience, experiencia del empleado, onboarding, offboarding, engagement, ciclo de vida del empleado",
-  "compensaciones": "compensación salarial, transparencia salarial, pay equity, brecha salarial de género, bandas salariales, total rewards",
-  "payroll": "liquidación de sueldos, payroll, nómina, gestión de salarios, compliance salarial",
-  "desarrollo": "desarrollo organizacional, capacitación, upskilling, reskilling, liderazgo, planes de carrera",
-  "cultura": "cultura organizacional, diversidad e inclusión DEI, seguridad psicológica, valores corporativos, clima laboral",
-  "talent": "reclutamiento, adquisición de talento, selección de personal, talent acquisition, movilidad interna, candidate experience",
-  "indicadores": "people analytics, métricas de RRHH, KPIs de recursos humanos, dashboards de HR, datos de fuerza laboral",
-  "hr-tech": "tecnología en recursos humanos, HRIS, inteligencia artificial en HR, automatización de RRHH, HR tech",
-  "change-management": "gestión del cambio organizacional, transformación cultural, change management, resistencia al cambio",
-  "prompts-hr": "inteligencia artificial aplicada a recursos humanos, prompts para HR, ChatGPT en RRHH, automatización con IA",
-  "relaciones-laborales": "derecho laboral argentino, relaciones laborales Argentina, convenios colectivos, sindicalismo, legislación laboral, Ministerio de Capital Humano, ARCA, Boletín Oficial, paritarias, indemnizaciones"
+const CATEGORY_QUERIES = {
+  "beneficios":          { q: "employee benefits wellness mental health workplace", lang: "es", qEn: "employee benefits wellness mental health" },
+  "marca-empleadora":    { q: "employer branding marca empleadora EVP talento", lang: "es", qEn: "employer branding employee value proposition" },
+  "people-experience":   { q: "employee experience onboarding engagement recursos humanos", lang: "es", qEn: "employee experience onboarding engagement" },
+  "compensaciones":      { q: "compensación salarial transparencia salarial pay equity", lang: "es", qEn: "salary transparency pay equity compensation" },
+  "payroll":             { q: "liquidación sueldos nómina payroll Argentina", lang: "es", qEn: "payroll automation salary management" },
+  "desarrollo":          { q: "capacitación upskilling liderazgo desarrollo organizacional", lang: "es", qEn: "employee training upskilling leadership development" },
+  "cultura":             { q: "cultura organizacional diversidad inclusión DEI clima laboral", lang: "es", qEn: "organizational culture diversity inclusion DEI" },
+  "talent":              { q: "reclutamiento selección talento recursos humanos Argentina", lang: "es", qEn: "talent acquisition recruitment hiring" },
+  "indicadores":         { q: "people analytics métricas RRHH KPI recursos humanos", lang: "es", qEn: "people analytics HR metrics workforce data" },
+  "hr-tech":             { q: "inteligencia artificial RRHH tecnología recursos humanos HR tech", lang: "es", qEn: "HR technology artificial intelligence HRIS automation" },
+  "change-management":   { q: "gestión del cambio transformación organizacional liderazgo", lang: "es", qEn: "change management organizational transformation" },
+  "relaciones-laborales":{ q: "relaciones laborales paritarias sindicato Argentina derecho laboral", lang: "es", qEn: "labor relations employment law Argentina" },
+  "prompts-hr":          { q: "inteligencia artificial ChatGPT recursos humanos automatización", lang: "es", qEn: "AI ChatGPT HR automation prompts" },
 };
 
-const RELACIONES_LABORALES_PROMPT = (today) => `Eres un experto en derecho laboral y relaciones laborales en Argentina. Hoy es ${today}.
+const SOURCES_BY_CATEGORY = {
+  "relaciones-laborales": "infobae.com,cronista.com,iprofesional.com,lanacion.com.ar",
+  "default": "shrm.org,hbr.org,forbes.com,infobae.com,cronista.com,iprofesional.com,lanacion.com.ar"
+};
 
-Busca y selecciona las 5 novedades más importantes y recientes (últimos 60 días) sobre relaciones laborales en Argentina.
+function cleanText(str) {
+  if (!str) return "";
+  return str.replace(/\[.*?\]/g, "").replace(/<[^>]+>/g, "").trim();
+}
 
-Fuentes prioritarias: iProfesional (iprofesional.com), Argentina.gob.ar/capital-humano/trabajo, ARCA (arca.gob.ar), Boletín Oficial (boletinoficial.gob.ar), Infobae, La Nación, Cronista.
-
-Temas: paritarias, convenios colectivos, legislación laboral nueva, resoluciones del Ministerio de Capital Humano, ARCA y empleo, conflictos gremiales, jurisprudencia laboral, cambios en indemnizaciones.
-
-REGLAS: SOLO noticias de Argentina, SOLO en español, links específicos al artículo.
-
-Responde ÚNICAMENTE con JSON válido sin texto adicional:
-[{"titulo":"...","resumen":"resumen de 3 oraciones mínimo","fuente":"...","url":"https://...","fecha":"YYYY-MM-DD","tema":"paritarias|legislacion|gremios|jurisprudencia|empleo|arca"}]`;
-
-const IPC_PROMPT = (today) => `Eres un experto en estadísticas económicas argentinas. Hoy es ${today}.
-
-Busca el último informe técnico del IPC publicado por el INDEC en https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31
-
-Dame estos datos del último informe disponible:
-- Variación mensual del IPC
-- Variación interanual del IPC
-- Variación acumulada desde inicio del año
-- Mes y año de los datos
-- Link directo al informe
-
-Responde ÚNICAMENTE con JSON válido sin texto adicional:
-{"mes":"abril 2026","variacion_mensual":"X.X%","variacion_interanual":"XX.X%","variacion_acumulada":"XX.X%","url_informe":"https://www.indec.gob.ar/...","url_indec":"https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31","nota":"aclaración si aplica"}`;
-
-const NEWS_PROMPT = (today, topic) => `Eres un experto en Recursos Humanos. Hoy es ${today}.
-
-Busca y selecciona 3 noticias REALES y RECIENTES (últimos 60 días) sobre: ${topic}.
-
-REGLAS:
-- Link específico al artículo (no a la home)
-- Prioriza noticias en español
-- Si es en inglés, traduce título y resumen al español
-- Fuentes válidas: SHRM, Harvard Business Review, MIT Sloan, Josh Bersin, AIHR, Gallup, McKinsey, Deloitte, LinkedIn Talent Blog, Forbes, Mercer, Gartner, ADRHA, IDEA Argentina, Infobae, La Nación, Cronista, universidades
-- Resumen de al menos 3 oraciones
-
-Responde ÚNICAMENTE con JSON válido sin texto adicional:
-[{"titulo":"...","resumen":"...","fuente":"...","url":"https://...","fecha":"YYYY-MM-DD","idioma_original":"español o inglés"}]`;
-
-async function callClaude(prompt, apiKey) {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2500,
-      system: "Respondes SOLO con JSON válido, sin texto adicional, sin markdown, sin backticks.",
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Anthropic API error: ${response.status} - ${errText}`);
-  }
-
-  const data = await response.json();
-  const text = data.content?.find(b => b.type === "text")?.text || "[]";
-  return text.replace(/```json|```/g, "").trim();
+function getSourceName(url) {
+  try {
+    const host = new URL(url).hostname.replace("www.", "");
+    const names = {
+      "shrm.org": "SHRM",
+      "hbr.org": "Harvard Business Review",
+      "forbes.com": "Forbes",
+      "infobae.com": "Infobae",
+      "lanacion.com.ar": "La Nacion",
+      "cronista.com": "Cronista",
+      "iprofesional.com": "iProfesional",
+      "mckinsey.com": "McKinsey",
+      "gallup.com": "Gallup",
+      "deloitte.com": "Deloitte",
+      "aihr.com": "AIHR",
+      "joshbersin.com": "Josh Bersin",
+      "sloanreview.mit.edu": "MIT Sloan",
+      "mercer.com": "Mercer",
+      "adrha.org.ar": "ADRHA",
+    };
+    return names[host] || host;
+  } catch { return "Fuente"; }
 }
 
 export default async function handler(req, res) {
   const category = req.query?.category || "beneficios";
   const type = req.query?.type || "news";
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const newsApiKey = process.env.NEWS_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Cache-Control", "s-maxage=7200, stale-while-revalidate=14400");
 
-  if (!apiKey) {
-    return res.status(500).json({ success: false, error: "API key not configured", news: [] });
+  // IPC — use Claude for INDEC data
+  if (type === "ipc") {
+    if (!anthropicKey) return res.status(500).json({ success: false, error: "No API key", ipc: null });
+    try {
+      const today = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+      const prompt = `Eres experto en estadísticas argentinas. Hoy es ${today}. Dame los últimos datos oficiales del IPC de Argentina publicados por INDEC. Responde SOLO con JSON válido sin texto adicional:\n{"mes":"abril 2026","variacion_mensual":"X.X%","variacion_interanual":"XX.X%","variacion_acumulada":"XX.X%","url_indec":"https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31","nota":"aclaración si aplica"}`;
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": anthropicKey, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 500, system: "Responde SOLO con JSON válido.", messages: [{ role: "user", content: prompt }] })
+      });
+      const d = await r.json();
+      const text = d.content?.find(b => b.type === "text")?.text || "{}";
+      const ipc = JSON.parse(text.replace(/```json|```/g, "").trim());
+      return res.status(200).json({ success: true, ipc });
+    } catch (e) {
+      return res.status(500).json({ success: false, error: e.message, ipc: null });
+    }
   }
 
-  const today = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+  if (!newsApiKey) return res.status(500).json({ success: false, error: "NEWS_API_KEY not configured", news: [] });
 
   try {
-    if (type === "ipc") {
-      const raw = await callClaude(IPC_PROMPT(today), apiKey);
-      const ipc = JSON.parse(raw);
-      return res.status(200).json({ success: true, ipc, updatedAt: today });
+    const catConfig = CATEGORY_QUERIES[category] || CATEGORY_QUERIES["beneficios"];
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const from = thirtyDaysAgo.toISOString().split("T")[0];
+
+    // Try Spanish first, then English
+    const queries = [
+      { q: catConfig.q, language: "es" },
+      { q: catConfig.qEn, language: "en" }
+    ];
+
+    let allArticles = [];
+
+    for (const query of queries) {
+      if (allArticles.length >= 5) break;
+      try {
+        const params = new URLSearchParams({
+          q: query.q,
+          language: query.language,
+          from,
+          sortBy: "relevancy",
+          pageSize: "10",
+          apiKey: newsApiKey
+        });
+        const response = await fetch(`https://newsapi.org/v2/everything?${params}`);
+        if (!response.ok) continue;
+        const data = await response.json();
+        if (data.status !== "ok" || !data.articles) continue;
+
+        const filtered = data.articles.filter(a =>
+          a.url &&
+          !a.url.includes("removed") &&
+          a.title &&
+          a.title !== "[Removed]" &&
+          a.description &&
+          a.description !== "[Removed]"
+        );
+        allArticles = [...allArticles, ...filtered];
+      } catch (e) {}
     }
 
-    if (category === "relaciones-laborales") {
-      const raw = await callClaude(RELACIONES_LABORALES_PROMPT(today), apiKey);
-      const articles = JSON.parse(raw);
-      if (!Array.isArray(articles) || articles.length === 0) throw new Error("No articles");
-      const news = articles.map((item, i) => ({
-        id: `claude-rel-${i}-${Date.now()}`,
-        rank: i + 1,
-        title: item.titulo || "",
-        summary: item.resumen || "",
-        source: item.fuente || "",
-        url: item.url || "#",
-        date: item.fecha || new Date().toISOString().split("T")[0],
-        isLive: true,
-        tema: item.tema || ""
-      }));
-      return res.status(200).json({ success: true, news, category, updatedAt: today });
+    if (allArticles.length === 0) {
+      return res.status(404).json({ success: false, error: "No articles found", news: [] });
     }
 
-    const topic = CATEGORY_PROMPTS[category] || CATEGORY_PROMPTS["beneficios"];
-    const raw = await callClaude(NEWS_PROMPT(today, topic), apiKey);
-    const articles = JSON.parse(raw);
-    if (!Array.isArray(articles) || articles.length === 0) throw new Error("No articles");
+    // Deduplicate and take top 5
+    const seen = new Set();
+    const unique = allArticles.filter(a => {
+      if (seen.has(a.url)) return false;
+      seen.add(a.url);
+      return true;
+    }).slice(0, 5);
 
-    const news = articles.map((item, i) => ({
-      id: `claude-${category}-${i}-${Date.now()}`,
+    const news = unique.map((article, i) => ({
+      id: `news-${category}-${i}-${Date.now()}`,
       rank: i + 1,
-      title: item.titulo || item.title || "",
-      summary: item.resumen || item.summary || "",
-      source: item.fuente || item.source || "",
-      url: item.url || "#",
-      date: item.fecha || new Date().toISOString().split("T")[0],
+      title: cleanText(article.title),
+      summary: cleanText(article.description || article.content || ""),
+      source: article.source?.name || getSourceName(article.url),
+      url: article.url,
+      date: article.publishedAt ? article.publishedAt.split("T")[0] : new Date().toISOString().split("T")[0],
       isLive: true,
-      idioma: item.idioma_original || "español"
+      image: article.urlToImage || null,
+      idioma: article.language === "es" ? "español" : "inglés"
     }));
 
-    return res.status(200).json({ success: true, news, category, updatedAt: today });
+    return res.status(200).json({
+      success: true,
+      news,
+      category,
+      updatedAt: today.toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
+    });
 
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message, news: [], category });
