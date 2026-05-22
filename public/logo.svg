@@ -1,14 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <circle cx="200" cy="200" r="200" fill="#0C2D4E"/>
-  <circle cx="200" cy="200" r="192" fill="none" stroke="#0EA5E9" stroke-width="2.5" opacity="0.4"/>
-  <circle cx="200" cy="200" r="178" fill="none" stroke="#0EA5E9" stroke-width="1" opacity="0.18"/>
-  <text x="188" y="228" text-anchor="middle" font-family="Georgia, serif" font-size="178" font-weight="700" fill="#7DD3FC" opacity="0.12" letter-spacing="-6">RH</text>
-  <text x="186" y="225" text-anchor="middle" font-family="Georgia, serif" font-size="178" font-weight="700" fill="#BAE6FD" opacity="0.16" letter-spacing="-6">RH</text>
-  <text x="184" y="222" text-anchor="middle" font-family="Georgia, serif" font-size="178" font-weight="700" fill="#E0F2FE" opacity="0.2" letter-spacing="-6">RH</text>
-  <text x="182" y="220" text-anchor="middle" font-family="Georgia, serif" font-size="178" font-weight="700" fill="#FFFFFF" letter-spacing="-6">RH</text>
-  <text x="336" y="155" text-anchor="middle" font-family="Georgia, serif" font-size="72" font-weight="700" fill="#0EA5E9">+</text>
-  <line x1="60" y1="258" x2="340" y2="258" stroke="#0EA5E9" stroke-width="1.5" opacity="0.5"/>
-  <text x="200" y="300" text-anchor="middle" font-family="Georgia, serif" font-size="28" font-weight="400" fill="#7DD3FC" letter-spacing="3">by JMM</text>
-  <circle cx="78" cy="170" r="3" fill="#0EA5E9" opacity="0.5"/>
-  <circle cx="322" cy="170" r="3" fill="#0EA5E9" opacity="0.5"/>
+  <rect width="400" height="400" rx="80" fill="#FFFFFF"/>
+  <text x="200" y="270" text-anchor="middle" font-family="Georgia, serif" font-size="210" font-weight="700" fill="#1D6FA8" letter-spacing="-8">RH</text>
+  <text x="200" y="300" text-anchor="middle" font-family="Georgia, serif" font-size="24" font-weight="400" fill="#4A9FCC" letter-spacing="5">positivo</text>
 </svg>
