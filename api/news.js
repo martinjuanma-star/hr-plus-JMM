@@ -64,7 +64,7 @@ async function callClaude(prompt, apiKey) {
       "anthropic-version": "2023-06-01"
     },
     body: JSON.stringify({
-      model: "claude-3-5-haiku-20241022",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 2500,
       system: "Respondes SOLO con JSON válido, sin texto adicional, sin markdown, sin backticks.",
       messages: [{ role: "user", content: prompt }]
