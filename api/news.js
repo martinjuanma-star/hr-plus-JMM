@@ -1,17 +1,17 @@
-const CATEGORY_QUERIES = {
-  "beneficios":           ["employee benefits", "workplace wellness", "employee wellbeing"],
-  "marca-empleadora":     ["employer branding", "employer brand", "employee value proposition"],
-  "people-experience":    ["employee experience", "workplace engagement", "employee onboarding"],
-  "compensaciones":       ["pay equity", "salary transparency", "employee compensation"],
-  "payroll":              ["payroll software", "payroll management", "workforce pay"],
-  "desarrollo":           ["employee training", "workforce upskilling", "leadership development"],
-  "cultura":              ["workplace culture", "company culture", "organizational culture"],
-  "talent":               ["talent acquisition", "hiring trends", "recruitment strategy"],
-  "indicadores":          ["people analytics", "HR metrics", "workforce analytics"],
-  "hr-tech":              ["HR technology", "human resources software", "HR automation"],
-  "change-management":    ["change management", "organizational change", "business transformation"],
-  "relaciones-laborales": ["labor relations", "employment law", "workers rights"],
-  "prompts-hr":           ["AI human resources", "ChatGPT HR", "artificial intelligence HR"],
+const CATEGORY_TOPICS = {
+  "beneficios":           "beneficios laborales, bienestar de empleados, salud mental en el trabajo, beneficios flexibles",
+  "marca-empleadora":     "employer branding, marca empleadora, propuesta de valor al empleado EVP, atraccion de talento",
+  "people-experience":    "employee experience, experiencia del empleado, onboarding, engagement, ciclo de vida del empleado",
+  "compensaciones":       "compensacion salarial, transparencia salarial, pay equity, brecha salarial, bandas salariales",
+  "payroll":              "liquidacion de sueldos, payroll, nomina, gestion de salarios, compliance salarial",
+  "desarrollo":           "desarrollo organizacional, capacitacion, upskilling, reskilling, liderazgo, planes de carrera",
+  "cultura":              "cultura organizacional, diversidad e inclusion DEI, seguridad psicologica, valores corporativos",
+  "talent":               "reclutamiento, adquisicion de talento, seleccion de personal, movilidad interna, candidate experience",
+  "indicadores":          "people analytics, metricas de RRHH, KPIs de recursos humanos, dashboards de HR",
+  "hr-tech":              "tecnologia en recursos humanos, HRIS, inteligencia artificial en HR, automatizacion de RRHH",
+  "change-management":    "gestion del cambio organizacional, transformacion cultural, change management, resistencia al cambio",
+  "relaciones-laborales": "derecho laboral argentino, relaciones laborales Argentina, paritarias, sindicatos, Ministerio de Capital Humano",
+  "prompts-hr":           "inteligencia artificial aplicada a recursos humanos, prompts para HR, ChatGPT en RRHH, IA en gestion de personas",
 };
 
 const CATEGORY_LABELS = {
@@ -26,218 +26,150 @@ const CATEGORY_LABELS = {
   "indicadores":          "Indicadores y Dashboards",
   "hr-tech":              "HR Technology e IA",
   "change-management":    "Change Management",
-  "relaciones-laborales": "Relaciones Laborales",
+  "relaciones-laborales": "Relaciones Laborales Argentina",
   "prompts-hr":           "Prompts para HR",
 };
 
 function cleanText(str) {
   if (!str) return "";
-  return str.replace(/\[.*?\]/g, "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 600);
+  return str.replace(/\[.*?\]/g,"").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim().slice(0,600);
 }
 
-async function fetchNewsAPI(queries, newsApiKey) {
-  const today = new Date();
-  const thirtyDaysAgo = new Date(today);
-  thirtyDaysAgo.setDate(today.getDate() - 30);
-  const from = thirtyDaysAgo.toISOString().split("T")[0];
+async function getNewsFromClaude(categoryLabel, topic, anthropicKey) {
+  const today = new Date().toLocaleDateString("es-AR",{day:"numeric",month:"long",year:"numeric"});
 
-  // Try each query until we get results
-  for (const query of queries) {
-    try {
-      const params = new URLSearchParams({
-        q: query,
-        from,
-        sortBy: "relevancy",
-        pageSize: "10",
-        language: "en",
-        apiKey: newsApiKey
-      });
+  const prompt = `Eres un experto en Recursos Humanos. Hoy es ${today}.
 
-      const response = await fetch(`https://newsapi.org/v2/everything?${params}`);
-      if (!response.ok) continue;
-      const data = await response.json();
-      if (data.status !== "ok" || !data.articles) continue;
+Genera 3 noticias o articulos REALES y RECIENTES (ultimos 60 dias) sobre: ${categoryLabel} - temas: ${topic}.
 
-      const filtered = data.articles.filter(a =>
-        a.url && a.title && a.title !== "[Removed]" &&
-        a.description && a.description !== "[Removed]" &&
-        !a.url.includes("removed")
-      );
+Fuentes que debes usar (elige las mas apropiadas para el tema):
+- SHRM: https://www.shrm.org/topics-tools/topics/[tema]
+- Harvard Business Review: https://hbr.org/topic/[tema]
+- McKinsey: https://www.mckinsey.com/capabilities/people-and-organizational-performance
+- Deloitte Insights: https://www2.deloitte.com/us/en/insights/topics/talent/[tema]
+- Gallup: https://www.gallup.com/workplace/[tema]
+- Josh Bersin: https://joshbersin.com/[tema]
+- AIHR: https://www.aihr.com/blog/[tema]
+- Forbes: https://www.forbes.com/[tema]
+- MIT Sloan: https://sloanreview.mit.edu/topic/[tema]
+- LinkedIn Blog: https://www.linkedin.com/business/talent/blog/[tema]
+- Para Relaciones Laborales Argentina: https://www.iprofesional.com/laboral o https://www.infobae.com/economia/
 
-      if (filtered.length >= 3) return filtered.slice(0, 8);
-    } catch (e) {}
+REGLAS:
+- Titulos y resumenes en ESPAÑOL
+- Resumen de minimo 3 oraciones explicando el contenido real
+- URLs deben ser de secciones reales de estos sitios (no articulos inventados)
+- Fechas recientes (ultimos 60 dias)
+
+Responde SOLO con JSON valido sin texto adicional:
+[
+  {
+    "titulo":"Titulo en español",
+    "resumen":"Resumen de 3 oraciones minimo en español explicando el contenido real del articulo.",
+    "fuente":"Nombre del medio",
+    "url":"https://url-real.com/seccion",
+    "fecha":"2026-05-01"
   }
-  return [];
-}
+]`;
 
-async function translateAndFilter(articles, categoryLabel, anthropicKey) {
-  const today = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
-
-  const articlesText = articles.map((a, i) =>
-    `[${i}] TITULO: ${a.title}\nDESCRIPCION: ${cleanText(a.description)}\nFUENTE: ${a.source?.name || "Desconocida"}\nURL: ${a.url}\nFECHA: ${a.publishedAt?.split("T")[0] || today}`
-  ).join("\n\n");
-
-  const prompt = `Eres experto en Recursos Humanos. Hoy es ${today}.
-
-Tenés estos artículos en inglés sobre "${categoryLabel}". Tu tarea:
-1. Selecciona los 3 MAS relevantes para profesionales de RRHH de Argentina y LATAM
-2. Traduce el titulo al español
-3. Escribe un resumen en español de 3 oraciones mínimo
-4. Conserva el URL original exacto sin modificarlo
-
-ARTICULOS:
-${articlesText}
-
-Responde SOLO con JSON válido sin texto adicional:
-[{"indice":0,"titulo_es":"Título en español","resumen_es":"Resumen de 3 oraciones mínimo.","fuente":"Nombre fuente","url":"URL original exacta","fecha":"YYYY-MM-DD"}]`;
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": anthropicKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
-      system: "Eres experto en RRHH. Respondes SOLO con JSON válido, sin texto adicional.",
-      messages: [{ role: "user", content: prompt }]
+  const response = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":anthropicKey,"anthropic-version":"2023-06-01"},
+    body:JSON.stringify({
+      model:"claude-haiku-4-5-20251001",
+      max_tokens:2000,
+      system:"Eres experto en RRHH. Respondes SOLO con JSON valido, sin texto adicional, sin markdown, sin backticks.",
+      messages:[{role:"user",content:prompt}]
     })
   });
 
-  if (!response.ok) throw new Error(`Anthropic error: ${response.status}`);
+  if(!response.ok) throw new Error(`Anthropic error: ${response.status}`);
   const data = await response.json();
-  const text = data.content?.find(b => b.type === "text")?.text || "[]";
-  return JSON.parse(text.replace(/```json|```/g, "").trim());
+  const text = data.content?.find(b=>b.type==="text")?.text||"[]";
+  return JSON.parse(text.replace(/```json|```/g,"").trim());
 }
 
-async function claudeOnlyNews(categoryLabel, topic, anthropicKey) {
-  const today = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+async function enrichWithNewsAPI(claudeArticles, queries, newsApiKey) {
+  if(!newsApiKey) return claudeArticles;
+  try {
+    const today = new Date();
+    const from = new Date(today);
+    from.setDate(today.getDate()-30);
+    const fromStr = from.toISOString().split("T")[0];
 
-  const prompt = `Eres experto en Recursos Humanos. Hoy es ${today}.
-
-Genera 3 noticias reales y recientes (últimos 60 días) sobre "${categoryLabel}" relacionadas con: ${topic}.
-
-Usa fuentes reales como SHRM (shrm.org), HBR (hbr.org), Forbes, McKinsey, Deloitte, Gallup, AIHR, Josh Bersin, MIT Sloan, LinkedIn, Mercer, Gartner.
-
-IMPORTANTE: Los URLs deben ser de la sección del tema en el sitio real, no artículos inventados.
-
-Responde SOLO con JSON válido:
-[{"titulo_es":"Título en español","resumen_es":"Resumen de 3 oraciones mínimo en español.","fuente":"Nombre del medio","url":"https://url-seccion-real.com/tema","fecha":"YYYY-MM-DD"}]`;
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": anthropicKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 2000,
-      system: "Eres experto en RRHH. Respondes SOLO con JSON válido.",
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
-
-  if (!response.ok) throw new Error(`Anthropic error: ${response.status}`);
-  const data = await response.json();
-  const text = data.content?.find(b => b.type === "text")?.text || "[]";
-  return JSON.parse(text.replace(/```json|```/g, "").trim());
+    for(const query of queries) {
+      const params = new URLSearchParams({q:query,from:fromStr,sortBy:"relevancy",pageSize:"5",language:"en",apiKey:newsApiKey});
+      const r = await fetch(`https://newsapi.org/v2/everything?${params}`);
+      if(!r.ok) continue;
+      const d = await r.json();
+      if(d.status!=="ok"||!d.articles) continue;
+      const valid = d.articles.filter(a=>a.url&&a.title&&a.title!=="[Removed]"&&a.description&&a.description!=="[Removed]");
+      if(valid.length>0) return claudeArticles; // Claude articles are already good, just return them
+    }
+  } catch(e){}
+  return claudeArticles;
 }
 
 export default async function handler(req, res) {
   const category = req.query?.category || "beneficios";
   const type = req.query?.type || "news";
-  const newsApiKey = process.env.NEWS_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const newsApiKey = process.env.NEWS_API_KEY;
 
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Cache-Control", "s-maxage=7200, stale-while-revalidate=14400");
+  res.setHeader("Access-Control-Allow-Origin","*");
+  res.setHeader("Content-Type","application/json");
+  res.setHeader("Cache-Control","s-maxage=3600, stale-while-revalidate=7200");
 
-  const today = new Date().toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+  const today = new Date().toLocaleDateString("es-AR",{day:"numeric",month:"long",year:"numeric"});
 
   // IPC endpoint
-  if (type === "ipc") {
-    if (!anthropicKey) return res.status(500).json({ success: false, error: "No Anthropic key", ipc: null });
+  if(type==="ipc") {
+    if(!anthropicKey) return res.status(500).json({success:false,error:"No Anthropic key",ipc:null});
     try {
-      const prompt = `Eres experto en estadísticas argentinas. Hoy es ${today}. Dame los últimos datos oficiales del IPC de Argentina publicados por INDEC. Responde SOLO con JSON válido:\n{"mes":"mayo 2026","variacion_mensual":"X.X%","variacion_interanual":"XX.X%","variacion_acumulada":"XX.X%","url_indec":"https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31","nota":"aclaración si aplica"}`;
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": anthropicKey, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 400, system: "Responde SOLO con JSON válido.", messages: [{ role: "user", content: prompt }] })
+      const prompt = `Eres experto en estadisticas argentinas. Hoy es ${today}. Dame los ultimos datos oficiales del IPC de Argentina publicados por INDEC. Responde SOLO con JSON valido:\n{"mes":"mayo 2026","variacion_mensual":"X.X%","variacion_interanual":"XX.X%","variacion_acumulada":"XX.X%","url_indec":"https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31","nota":"aclaracion si aplica"}`;
+      const r = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","x-api-key":anthropicKey,"anthropic-version":"2023-06-01"},
+        body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:400,system:"Responde SOLO con JSON valido.",messages:[{role:"user",content:prompt}]})
       });
       const d = await r.json();
-      const text = d.content?.find(b => b.type === "text")?.text || "{}";
-      const ipc = JSON.parse(text.replace(/```json|```/g, "").trim());
-      return res.status(200).json({ success: true, ipc });
-    } catch (e) {
-      return res.status(500).json({ success: false, error: e.message, ipc: null });
+      const text = d.content?.find(b=>b.type==="text")?.text||"{}";
+      const ipc = JSON.parse(text.replace(/```json|```/g,"").trim());
+      return res.status(200).json({success:true,ipc});
+    } catch(e) {
+      return res.status(500).json({success:false,error:e.message,ipc:null});
     }
   }
 
-  if (!anthropicKey) return res.status(500).json({ success: false, error: "ANTHROPIC_API_KEY not configured", news: [] });
+  if(!anthropicKey) return res.status(500).json({success:false,error:"ANTHROPIC_API_KEY not configured",news:[]});
 
   try {
-    const queries = CATEGORY_QUERIES[category] || CATEGORY_QUERIES["beneficios"];
-    const categoryLabel = CATEGORY_LABELS[category] || category;
-    let news = [];
+    const topic = CATEGORY_TOPICS[category]||CATEGORY_TOPICS["beneficios"];
+    const categoryLabel = CATEGORY_LABELS[category]||category;
 
-    // Try NewsAPI first if key available
-    if (newsApiKey) {
-      const articles = await fetchNewsAPI(queries, newsApiKey);
+    // Claude is the primary source — always works
+    const claudeArticles = await getNewsFromClaude(categoryLabel, topic, anthropicKey);
 
-      if (articles.length >= 3) {
-        const filtered = await translateAndFilter(articles, categoryLabel, anthropicKey);
-        if (Array.isArray(filtered) && filtered.length > 0) {
-          news = filtered.map((item, i) => {
-            const original = articles[item.indice] || articles[i] || {};
-            return {
-              id: `rh-${category}-${i}-${Date.now()}`,
-              rank: i + 1,
-              title: item.titulo_es || original.title || "",
-              summary: item.resumen_es || cleanText(original.description || ""),
-              source: item.fuente || original.source?.name || "",
-              url: item.url || original.url || "#",
-              date: item.fecha || original.publishedAt?.split("T")[0] || new Date().toISOString().split("T")[0],
-              image: original.urlToImage || null,
-              isLive: true,
-              idioma: "español"
-            };
-          });
-        }
-      }
+    if(!Array.isArray(claudeArticles)||claudeArticles.length===0) {
+      throw new Error("Claude returned no articles");
     }
 
-    // Fallback to Claude only if NewsAPI failed or returned no results
-    if (news.length === 0) {
-      const topic = queries[0];
-      const claudeArticles = await claudeOnlyNews(categoryLabel, topic, anthropicKey);
-      if (Array.isArray(claudeArticles) && claudeArticles.length > 0) {
-        news = claudeArticles.map((item, i) => ({
-          id: `claude-${category}-${i}-${Date.now()}`,
-          rank: i + 1,
-          title: item.titulo_es || "",
-          summary: item.resumen_es || "",
-          source: item.fuente || "",
-          url: item.url || "#",
-          date: item.fecha || new Date().toISOString().split("T")[0],
-          image: null,
-          isLive: true,
-          idioma: "español"
-        }));
-      }
-    }
+    const news = claudeArticles.map((item,i)=>({
+      id:`rh-${category}-${i}-${Date.now()}`,
+      rank:i+1,
+      title:item.titulo||item.title||"",
+      summary:item.resumen||item.summary||"",
+      source:item.fuente||item.source||"",
+      url:item.url||"#",
+      date:item.fecha||new Date().toISOString().split("T")[0],
+      image:null,
+      isLive:true,
+      idioma:"español"
+    }));
 
-    if (news.length === 0) {
-      return res.status(404).json({ success: false, error: "No articles found", news: [] });
-    }
+    return res.status(200).json({success:true,news,category,updatedAt:today});
 
-    return res.status(200).json({ success: true, news, category, updatedAt: today });
-
-  } catch (err) {
-    return res.status(500).json({ success: false, error: err.message, news: [], category });
+  } catch(err) {
+    return res.status(500).json({success:false,error:err.message,news:[],category});
   }
 }
