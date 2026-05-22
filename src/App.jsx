@@ -381,8 +381,8 @@ export default function RHPlusApp() {
           <>
             <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:14,marginBottom:30,scrollbarWidth:"none"}}>
               {CATEGORIES.map(cat=>(
-                <button key={cat.id} onClick={()=>setActiveCategory(cat.id)} style={{padding:"12px 18px",borderRadius:10,border:"2px solid",borderColor:activeCategory===cat.id?cat.accent:"transparent",background:activeCategory===cat.id?`linear-gradient(135deg,${cat.bg},white)`:"rgba(255,255,255,0.75)",color:activeCategory===cat.id?cat.accent:"#374151",fontSize:14,fontWeight:activeCategory===cat.id?700:500,cursor:"pointer",whiteSpace:"nowrap",boxShadow:activeCategory===cat.id?`0 2px 12px ${cat.accent}33`:"0 1px 4px rgba(0,0,0,0.06)",display:"flex",alignItems:"center",gap:7}}>
-                  <span style={{fontSize:17}}>{cat.icon}</span> {cat.label}
+                <button key={cat.id} onClick={()=>setActiveCategory(cat.id)} style={{padding:"7px 13px",borderRadius:8,border:"1.5px solid",borderColor:activeCategory===cat.id?cat.accent:"transparent",background:activeCategory===cat.id?`linear-gradient(135deg,${cat.bg},white)`:"rgba(255,255,255,0.75)",color:activeCategory===cat.id?cat.accent:"#374151",fontSize:13,fontWeight:activeCategory===cat.id?700:500,cursor:"pointer",whiteSpace:"nowrap",boxShadow:activeCategory===cat.id?`0 2px 8px ${cat.accent}33`:"0 1px 3px rgba(0,0,0,0.06)",display:"flex",alignItems:"center",gap:5}}>
+                  <span style={{fontSize:14}}>{cat.icon}</span> {cat.label}
                 </button>
               ))}
             </div>
