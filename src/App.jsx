@@ -91,33 +91,32 @@ function IPCWidget() {
   if(!ipc) return null;
 
   const indicators=[
-    {label:"Variacion Mensual",   value:ipc.variacion_mensual,   icon:"📅", color:"#38BDF8", bg:"rgba(56,189,248,0.1)"},
-    {label:"Variacion Interanual",value:ipc.variacion_interanual, icon:"📈", color:"#F87171", bg:"rgba(248,113,113,0.1)"},
-    {label:"Acumulado del Ano",   value:ipc.variacion_acumulada, icon:"📊", color:"#34D399", bg:"rgba(52,211,153,0.1)"},
+    {label:"Mensual",   value:ipc.variacion_mensual,   color:"#38BDF8"},
+    {label:"Interanual",value:ipc.variacion_interanual, color:"#F87171"},
+    {label:"Acumulado", value:ipc.variacion_acumulada,  color:"#34D399"},
   ];
 
   return (
-    <div style={{background:"linear-gradient(135deg,#1E3A5F,#1E40AF)",borderRadius:16,padding:"24px 28px",marginBottom:28,boxShadow:"0 4px 24px rgba(30,64,175,0.25)"}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,flexWrap:"wrap",gap:10}}>
+    <div style={{background:"linear-gradient(135deg,#1E3A5F,#1E40AF)",borderRadius:16,padding:"18px 20px",marginBottom:28,boxShadow:"0 4px 24px rgba(30,64,175,0.25)"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
         <div>
-          <h3 style={{margin:0,fontSize:18,color:"white",fontWeight:700}}>IPC · Indice de Precios al Consumidor</h3>
-          <p style={{margin:"4px 0 0",fontSize:13,color:"#93C5FD"}}>INDEC · {ipc.mes} · Datos oficiales Argentina</p>
+          <h3 style={{margin:0,fontSize:15,color:"white",fontWeight:700}}>IPC · Indice de Precios al Consumidor</h3>
+          <p style={{margin:"2px 0 0",fontSize:11,color:"#93C5FD"}}>INDEC · {ipc.mes} · Datos oficiales Argentina</p>
         </div>
         <a href={ipc.url_indec||"https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-5-31"} target="_blank" rel="noopener noreferrer"
-          style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 18px",background:"rgba(255,255,255,0.15)",border:"1.5px solid rgba(255,255,255,0.3)",borderRadius:10,color:"white",fontSize:13,fontWeight:700,textDecoration:"none"}}>
-          🔗 Ver en INDEC
+          style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 12px",background:"rgba(255,255,255,0.15)",border:"1.5px solid rgba(255,255,255,0.3)",borderRadius:8,color:"white",fontSize:12,fontWeight:700,textDecoration:"none"}}>
+          🔗 Ver INDEC
         </a>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14}}>
+      <div style={{display:"flex",gap:8}}>
         {indicators.map(ind=>(
-          <div key={ind.label} style={{background:"rgba(255,255,255,0.95)",borderRadius:14,padding:"18px 16px",textAlign:"center"}}>
-            <div style={{fontSize:26,marginBottom:6}}>{ind.icon}</div>
-            <div style={{fontSize:28,fontWeight:700,color:ind.color,marginBottom:4}}>{ind.value}</div>
-            <div style={{fontSize:12,color:"#64748B",fontWeight:600,lineHeight:1.3}}>{ind.label}</div>
+          <div key={ind.label} style={{flex:1,background:"rgba(255,255,255,0.95)",borderRadius:10,padding:"12px 8px",textAlign:"center"}}>
+            <div style={{fontSize:20,fontWeight:700,color:ind.color,marginBottom:3}}>{ind.value}</div>
+            <div style={{fontSize:11,color:"#64748B",fontWeight:600}}>{ind.label}</div>
           </div>
         ))}
       </div>
-      {ipc.nota&&<p style={{margin:"14px 0 0",fontSize:12,color:"#93C5FD",fontStyle:"italic"}}>* {ipc.nota}</p>}
+      {ipc.nota&&<p style={{margin:"10px 0 0",fontSize:11,color:"#93C5FD",fontStyle:"italic"}}>* {ipc.nota}</p>}
     </div>
   );
 }
@@ -326,11 +325,10 @@ export default function RHPlusApp() {
   return (
     <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#EFF6FF 0%,#F0FDFA 60%,#E0F2FE 100%)",fontFamily:"'Palatino Linotype','Book Antiqua',Palatino,Georgia,serif"}}>
       <header style={{background:"linear-gradient(135deg,#0F172A 0%,#0C4A6E 100%)",padding:"20px 28px",position:"sticky",top:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:14,boxShadow:"0 4px 24px rgba(15,23,42,0.25)"}}>
-        <div style={{display:"flex",alignItems:"center",gap:14}}>
-          <RHPlusLogo/>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
           <div>
             <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-              <h1 style={{margin:0,fontSize:25,fontWeight:700,color:"white",letterSpacing:"-0.3px"}}>RH+</h1>
+              <h1 style={{margin:0,fontSize:28,fontWeight:700,color:"white",letterSpacing:"-0.3px"}}>RH+</h1>
               <span style={{fontSize:11,color:"#7DD3FC",fontWeight:500,letterSpacing:"0.3px",fontStyle:"italic"}}>by JMM</span>
             </div>
             <p style={{margin:0,fontSize:12,color:"#7DD3FC",letterSpacing:"0.5px"}}>RECURSOS HUMANOS · NOTICIAS EN TIEMPO REAL · 2026</p>
